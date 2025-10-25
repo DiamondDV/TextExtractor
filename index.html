@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolCloud - Image Text Extractor</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Google Font: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Use Inter as the default font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom styles for file input */
+        .file-drop-zone {
+            border: 2px dashed #d1d5db; /* gray-300 */
+            transition: all 0.3s ease;
+        }
+        .file-drop-zone.dragover {
+            border-color: #2563eb; /* blue-600 */
+            background-color: #f0f9ff; /* blue-50 */
+        }
+        /* Custom scrollbar for results */
+        #result-text::-webkit-scrollbar {
+            width: 8px;
+        }
+        #result-text::-webkit-scrollbar-track {
+            background: #f1f5f9; /* slate-100 */
+        }
+        #result-text::-webkit-scrollbar-thumb {
+            background: #94a3b8; /* slate-400 */
+            border-radius: 4px;
+        }
+        #result-text::-webkit-scrollbar-thumb:hover {
+            background: #64748b; /* slate-500 */
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 antialiased">
+
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <!-- Logo & Brand Name -->
+                <a href="index.html" class="flex items-center gap-2">
+                    <!-- Simple SVG Logo -->
+                    <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l-3 3m3-3l3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                    </svg>
+                    <span class="font-bold text-xl text-slate-900">ToolCloud</span>
+                </a>
+                
+                <!-- Navigation (optional) -->
+                <div class="flex items-center gap-4">
+                    <a href="#" class="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+                        Feedback
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Hero Section -->
+        <section class="text-center max-w-3xl mx-auto mb-12">
+            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight text-slate-900">
+                Image to Text Extractor
+            </h1>
+            <p class="mt-4 text-lg lg:text-xl text-slate-600">
+                Upload any image, and our AI will extract the text for you. Simple, fast, and free.
+            </p>
+        </section>
+
+        <!-- Tool UI -->
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <!-- Left Column: Upload & Preview -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg flex flex-col">
+                    <h2 class="text-2xl font-semibold mb-4 text-slate-800">1. Upload Your Image</h2>
+                    
+                    <!-- File Upload Area -->
+                    <div id="file-drop-zone" class="file-drop-zone w-full rounded-lg text-center cursor-pointer bg-slate-50 hover:bg-slate-100 flex-grow flex flex-col justify-center items-center p-10">
+                        <input type="file" id="image-upload" accept="image/png, image/jpeg, image/webp" class="hidden">
+                        <div class="flex flex-col items-center">
+                            <!-- Upload Icon -->
+                            <svg class="w-16 h-16 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            <p class="mt-4 text-lg text-slate-600">
+                                <span class="font-semibold text-blue-600">Drag & drop files here</span>
+                            </p>
+                            <p class="text-sm text-slate-500 mt-1">or click to browse</p>
+                            <p class="text-xs text-slate-400 mt-4">Supports: PNG, JPG, WEBP</p>
+                        </div>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div id="image-preview-container" class="hidden flex-grow relative w-full rounded-lg overflow-hidden border border-slate-200">
+                        <img id="image-preview" src="#" alt="Image preview" class="w-full h-full object-contain" style="min-height: 300px;"/>
+                        <button id="clear-button" title="Remove image" class="absolute top-3 right-3 bg-black/50 text-white rounded-full p-1.5 hover:bg-black/70 transition-all">
+                            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Results -->
+                <div class="bg-white p-6 rounded-2xl shadow-lg flex flex-col min-h-[400px]">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-slate-800">2. Extracted Text</h2>
+                        <button
+                            id="copy-button"
+                            class="hidden text-sm font-medium text-blue-600 hover:text-blue-800 disabled:text-slate-400 disabled:cursor-not-allowed"
+                        >
+                            Copy Text
+                        </button>
+                    </div>
+
+                    <!-- Results Placeholder -->
+                    <div id="results-placeholder" class="flex-grow flex flex-col justify-center items-center text-center border-2 border-dashed border-slate-200 rounded-lg p-10">
+                        <svg class="w-16 h-16 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        <p class="mt-4 text-lg text-slate-500">Your extracted text will appear here.</p>
+                    </div>
+
+                    <!-- Loading Spinner -->
+                    <div id="loading-spinner" class="hidden flex-grow flex flex-col justify-center items-center text-center p-10">
+                        <svg class="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <p class="mt-4 text-lg text-slate-500">Analyzing your image...</p>
+                    </div>
+
+                    <!-- Result Area -->
+                    <div id="result-container" class="hidden flex-grow h-full">
+                        <textarea
+                            id="result-text"
+                            rows="10"
+                            class="w-full h-full min-h-[300px] p-3 border border-slate-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 resize-none"
+                            readonly
+                        ></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="mt-6 max-w-2xl mx-auto p-3 bg-red-100 text-red-700 rounded-lg hidden text-center">
+                <!-- Error content will be set by JS -->
+            </div>
+
+            <!-- Extract Button (Main CTA) -->
+            <div id="extract-button-container" class="text-center mt-8 hidden">
+                <button
+                    id="extract-button"
+                    class="w-full max-w-sm flex justify-center py-3 px-8 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all disabled:bg-slate-400 disabled:cursor-not-allowed"
+                >
+                    Extract Text
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="text-center py-10 mt-12 border-t border-slate-200">
+        <p class="text-sm text-slate-500">&copy; 2025 ToolCloud. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // --- DOM Elements ---
+        const imageUpload = document.getElementById('image-upload');
+        const fileDropZone = document.getElementById('file-drop-zone');
+        const imagePreviewContainer = document.getElementById('image-preview-container');
+        const imagePreview = document.getElementById('image-preview');
+        const clearButton = document.getElementById('clear-button');
+        
+        const extractButtonContainer = document.getElementById('extract-button-container');
+        const extractButton = document.getElementById('extract-button');
+        
+        const resultsPlaceholder = document.getElementById('results-placeholder');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultContainer = document.getElementById('result-container');
+        const resultText = document.getElementById('result-text');
+        
+        const copyButton = document.getElementById('copy-button');
+        const errorMessage = document.getElementById('error-message');
+
+        let currentFile = null;
+
+        // --- Drag and Drop Handlers ---
+        fileDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileDropZone.classList.add('dragover');
+        });
+
+        fileDropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            fileDropZone.classList.remove('dragover');
+        });
+
+        fileDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileDropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileDropZone.addEventListener('click', () => {
+            imageUpload.click();
+        });
+
+        imageUpload.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        // --- File Handling ---
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload a valid image file (PNG, JPG, WEBP).');
+                return;
+            }
+            currentFile = file;
+            
+            // Show image preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                // Show preview, hide dropzone
+                fileDropZone.classList.add('hidden');
+                imagePreviewContainer.classList.remove('hidden');
+                // Show extract button
+                extractButtonContainer.classList.remove('hidden');
+                // Reset results area
+                resetResultsArea();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // --- Button Click Handlers ---
+        clearButton.addEventListener('click', () => {
+            currentFile = null;
+            imageUpload.value = null; // Reset file input
+            
+            // Show dropzone, hide preview
+            fileDropZone.classList.remove('hidden');
+            imagePreviewContainer.classList.add('hidden');
+            imagePreview.src = "#";
+
+            // Hide extract button
+            extractButtonContainer.classList.add('hidden');
+            
+            // Reset results area
+            resetResultsArea();
+            hideError();
+        });
+
+        extractButton.addEventListener('click', () => {
+            if (!currentFile) {
+                showError('Please upload an image first.');
+                return;
+            }
+            // Reset results and show loading spinner
+            resetResultsArea();
+            resultsPlaceholder.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            
+            setLoadingState(true);
+            hideError();
+
+            extractText(currentFile);
+        });
+
+        copyButton.addEventListener('click', () => {
+            resultText.select();
+            // Use document.execCommand for iFrame compatibility
+            try {
+                document.execCommand('copy');
+                copyButton.innerText = 'Copied!';
+                setTimeout(() => {
+                    copyButton.innerText = 'Copy Text';
+                }, 2000);
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+                showError('Failed to copy text to clipboard.');
+            }
+        });
+
+        // --- Text Extraction Logic ---
+        async function extractText(file) {
+            try {
+                // 1. Convert image to Base64
+                const base64ImageData = await fileToBase64(file);
+
+                // 2. Prepare API request
+                const apiKey = ""; // API key is handled by the environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: "Extract all text from this image. Only return the extracted text, with no additional commentary or formatting. Preserve line breaks as found in the image." },
+                            {
+                                inlineData: {
+                                    mimeType: file.type,
+                                    data: base64ImageData
+                                }
+                            }
+                        ]
+                    }]
+                };
+
+                // 3. Make API call with retry logic
+                const response = await fetchWithRetry(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                // 4. Process the response
+                const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                
+                if (text && text.trim().length > 0) {
+                    resultText.value = text.trim();
+                    resultContainer.classList.remove('hidden');
+                    copyButton.classList.remove('hidden');
+                } else {
+                    throw new Error('No text found in the image.');
+                }
+            } catch (err) {
+                console.error('Extraction failed:', err);
+                showError(`Extraction failed: ${err.message}`);
+                // Show placeholder again on error
+                resultsPlaceholder.classList.remove('hidden');
+            } finally {
+                // 5. Reset loading state
+                setLoadingState(false);
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+        
+        // --- API Fetch with Exponential Backoff ---
+        async function fetchWithRetry(url, options, retries = 3, delay = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok && response.status === 429 && retries > 0) {
+                    // Throttled, retry with backoff
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                }
+                return response;
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(url, options, retries - 1, delay * 2);
+                }
+                throw error;
+            }
+        }
+
+        // --- UI Helper Functions ---
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]); // Get Base64 part
+                reader.onerror = error => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function setLoadingState(isLoading) {
+            extractButton.disabled = isLoading;
+            extractButton.innerText = isLoading ? 'Processing...' : 'Extract Text';
+        }
+
+        function resetResultsArea() {
+            // Hide results, show placeholder, hide loading
+            resultsPlaceholder.classList.remove('hidden');
+            loadingSpinner.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            copyButton.classList.add('hidden');
+            resultText.value = '';
+            copyButton.innerText = 'Copy Text';
+        }
+
+        function showError(message) {
+            errorMessage.innerText = message;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function hideError() {
+            errorMessage.classList.add('hidden');
+            errorMessage.innerText = '';
+        }
+
+    </script>
+
+</body>
+</html>
+
